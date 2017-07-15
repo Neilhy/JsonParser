@@ -11,6 +11,12 @@ class JsonEOFError(JsonError):
         message -- explanation of the error
     """
 
-    def __init__(self, where, message):
+    def __init__(self, message, where=None):
         self.where = where
         self.message = message
+
+    def __str__(self):
+        if self.where is None:
+            return self.message
+        else:
+            return str(self.where) + " - " + str(self.message)

@@ -64,7 +64,7 @@ class TokenReader(object):
             return TokenType.STRING
         elif c == 'n':
             return TokenType.NULL
-        elif c == 't' or c == 'f':
+        elif c in ('t', 'f'):
             return TokenType.BOOLEAN
         elif c == '-' or ('0' <= c <= '9'):
             return TokenType.NUMBER
@@ -135,3 +135,30 @@ class TokenReader(object):
             else:
                 string.append(ch)
         return ''.join(string)
+
+    def read_boolean(self):
+        ch = self.json_string[self.json_readed]
+        if ch == 't':
+            expected = 'rue'
+        elif ch == 'f':
+            expected = 'alse'
+        else:
+            raise ParseError(
+                message="Unexpected char:" + ch,
+                where="In class : TokenReader\nIn method : read_string")
+        for i in range(len(expected)):
+            ech = self.read_next_char()
+            if ech != expected[i]:
+                raise ParseError(
+                    message="Unexpected char:" + ech,
+                    where="In class : TokenReader\nIn method : read_string")
+        return ch == 't'
+
+    def read_null(self):
+        expected = 'null'
+        for i in range(len(expected)):
+            ech = self.read_next_char()
+            if ech != expected[i]:
+                raise ParseError(
+                    message="Unexpected char:" + ech,
+                    where="In class : TokenReader\nIn method : read_string")

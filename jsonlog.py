@@ -46,3 +46,6 @@ class JsonLog(object):
 
     def fatal(self, msg, *args, **kwargs):
         self.logger.fatal(msg, args, kwargs)
+
+    def exception(self, msg, *args, **kwargs):
+        self.logger.exception(msg, args, kwargs)

@@ -52,12 +52,12 @@ class TokenType:
     """
     START_OBJ = 1
     END_OBJ = 2
-    START_ARRAY = 3
-    END_ARRAY = 4
+    START_LIST = 3
+    END_LIST = 4
     NULL = 5
     NUMBER = 6
     STRING = 7
-    BOOLEAN = 8
+    BOOL = 8
     COLON = 9
     COMMA = 10
     END_DOC = 11

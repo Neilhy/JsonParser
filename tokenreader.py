@@ -37,7 +37,6 @@ class TokenReader(object):
 
     def read_next_token(self):
         """read next token from json string"""
-        c = '???'
         try:
             c = self.read_not_white_space()
         except JsonEOFError as eof_error:
@@ -52,10 +51,10 @@ class TokenReader(object):
             return TokenType.END_OBJ
         elif c == '[':
             self.read_next_char()
-            return TokenType.START_ARRAY
+            return TokenType.START_LIST
         elif c == ']':
             self.read_next_char()
-            return TokenType.END_ARRAY
+            return TokenType.END_LIST
         elif c == ':':
             self.read_next_char()
             return TokenType.COLON
@@ -67,7 +66,7 @@ class TokenReader(object):
         elif c == 'n':
             return TokenType.NULL
         elif c in ('t', 'f'):
-            return TokenType.BOOLEAN
+            return TokenType.BOOL
         elif c == '-' or ('0' <= c <= '9'):
             return TokenType.NUMBER
         else:

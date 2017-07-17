@@ -15,7 +15,7 @@ class JsonStack(list):
         item = super(JsonStack, self).pop()
         if item_type is None or item.is_type(item_type):
             return item
-        raise JsonStackError("Type is not match.", "Popping item.")
+        raise JsonStackError("Type is not match.", "In JsonStack:Popping item.")
 
     def is_empty(self):
         return super(JsonStack, self).__len__() == 0

@@ -4,9 +4,10 @@
 from eoferror import JsonEOFError
 from parseerror import ParseError
 from jsonlog import JsonLog
-from token import TokenType
+from tokentype import TokenType
 
 import sys
+import math
 
 log = JsonLog(__name__)
 
@@ -14,52 +15,56 @@ log = JsonLog(__name__)
 class TokenReader(object):
     """read token one by one from json string"""
 
-    def __init__(self, json_string):
-        self.json_string = json_string
-        self.json_len = len(json_string)
-        self.json_readed = 0
+    def __init__(self, reader):
+        self.json_char_reader = reader
+        self.json_char_had_read = 0
 
-    def read_next_char(self):
-        """read next char"""
-        self.json_readed += 1
-        return self.json_string[self.json_readed]
+    # def read_next_char(self):
+    #     """read next char"""
+    #     self.json_char_had_read += 1
+    #     if self.json_char_had_read == self.json_len:
+    #         raise JsonEOFError(where="In class : TokenReader.read_next_char",
+    #                            message="EOF of the json_string")
+    #     return self.json_string[self.json_char_had_read]
 
     def read_not_white_space(self):
         """read next char which is not a white space"""
         while True:
-            if self.json_readed == self.json_len:
-                raise JsonEOFError(where="In class : TokenReader",
-                                   message="EOF of the json_string")
-            c = self.json_string[self.json_readed]
+            if not self.json_char_reader.has_more_char():
+                raise JsonEOFError(
+                    where="In class : TokenReader.read_not_white_space",
+                    message="EOF of the json_string"
+                )
+            c = self.json_char_reader.read_top_char()
             if c not in (' ', '\t', '\n', '\r'):
                 return c
-            self.read_next_char()  # skip white space
+            self.json_char_reader.read_next_char()  # skip white space
 
     def read_next_token(self):
         """read next token from json string"""
         try:
             c = self.read_not_white_space()
         except JsonEOFError as eof_error:
-            log.warning(str(eof_error), exc_info=True)
+            # log.warning(str(eof_error), exc_info=True)
             return TokenType.END_DOC
 
         if c == '{':
-            self.read_next_char()
+            self.json_char_reader.read_next_char()
             return TokenType.START_OBJ
         elif c == '}':
-            self.read_next_char()
+            self.json_char_reader.read_next_char()
             return TokenType.END_OBJ
         elif c == '[':
-            self.read_next_char()
+            self.json_char_reader.read_next_char()
             return TokenType.START_LIST
         elif c == ']':
-            self.read_next_char()
+            self.json_char_reader.read_next_char()
             return TokenType.END_LIST
         elif c == ':':
-            self.read_next_char()
+            self.json_char_reader.read_next_char()
             return TokenType.COLON
         elif c == ',':
-            self.read_next_char()
+            self.json_char_reader.read_next_char()
             return TokenType.COMMA
         elif c == '\"':
             return TokenType.STRING
@@ -81,15 +86,15 @@ class TokenReader(object):
     def read_string(self):
         string = []
         # first char must be "
-        ch = self.json_string[self.json_readed]
+        ch = self.json_char_reader.read_next_char()
         if ch != '\"':
             raise ParseError(
                 message="Expected \" but actual is: " + ch,
                 where="In class : TokenReader\nIn method : read_string")
         while True:
-            ch = self.read_next_char()
+            ch = self.json_char_reader.read_next_char()
             if ch == '\\':  # escape: \" \\ \/ \b \f \n \r \t
-                ech = self.read_next_char()
+                ech = self.json_char_reader.read_next_char()
 
                 if ech == "\"":
                     string.append("\"")
@@ -108,20 +113,26 @@ class TokenReader(object):
                 elif ech == "t":
                     string.append("t")
                 elif ech == "u":  # read an unicode uXXXX
-                    u = 0
+                    uni_str = ''
                     for i in range(4):
-                        uch = self.read_next_char()
-                        if '0' <= uch <= '9':
-                            u = (u << 4) + int(uch)
-                        elif 'a' <= uch <= 'f':
-                            u = (u << 4) + int(uch, 16)
-                        elif 'A' <= uch <= "F":
-                            u = (u << 4) + int(uch, 16)
+                        uch = self.json_char_reader.read_next_char()
+                        if '0' <= uch <= '9' or 'a' <= uch <= 'f' or "A" <= uch <= "F":
+                            uni_str += uch
+
+                            # u = 0
+                            # for i in range(4):
+                            #     uch = self.json_char_reader.read_next_char()
+                            #     if '0' <= uch <= '9':
+                            #         u = (u << 4) + int(uch)
+                            #     elif 'a' <= uch <= 'f':
+                            #         u = (u << 4) + int(uch, 16)
+                            #     elif 'A' <= uch <= "F":
+                            #         u = (u << 4) + int(uch, 16)
                         else:
                             raise ParseError(
                                 message="Unexpected char:" + uch,
                                 where="In class : TokenReader\nIn method : read_string")
-                    string.append(chr(u))
+                    string.append(unicode(uni_str))
                 else:
                     raise ParseError(
                         message="Unexpected char:" + ech,
@@ -137,8 +148,8 @@ class TokenReader(object):
                 string.append(ch)
         return ''.join(string)
 
-    def read_boolean(self):
-        ch = self.json_string[self.json_readed]
+    def read_bool(self):
+        ch = self.json_char_reader.read_next_char()
         if ch == 't':
             expected = 'rue'
         elif ch == 'f':
@@ -146,19 +157,19 @@ class TokenReader(object):
         else:
             raise ParseError(
                 message="Unexpected char:" + ch,
-                where="In class : TokenReader\nIn method : read_string")
+                where="In class : TokenReader\nIn method : read_bool")
         for i in range(len(expected)):
-            ech = self.read_next_char()
+            ech = self.json_char_reader.read_next_char()
             if ech != expected[i]:
                 raise ParseError(
                     message="Unexpected char:" + ech,
-                    where="In class : TokenReader\nIn method : read_string")
+                    where="In class : TokenReader\nIn method : read_bool")
         return ch == 't'
 
     def read_null(self):
         expected = 'null'
         for i in range(len(expected)):
-            ech = self.read_next_char()
+            ech = self.json_char_reader.read_next_char()
             if ech != expected[i]:
                 raise ParseError(
                     message="Unexpected char:" + ech,
@@ -196,30 +207,29 @@ class TokenReader(object):
         has_fra_part = False
         has_exp_part = False
 
-        ch = self.json_string[self.json_readed]
+        ch = self.json_char_reader.read_top_char()
         minus_sign = (ch == '-')
         exp_minus_sign = False
         if minus_sign:
-            self.read_next_char()
+            self.json_char_reader.read_next_char()
 
         status = INT_PART
         while True:
-            if self.json_readed == self.json_len:
-                status = NUMBER_END
+            if self.json_char_reader.has_more_char():
+                ch = self.json_char_reader.read_top_char()
             else:
-                ch = self.json_string[self.json_readed]
+                status = NUMBER_END
 
             if status == INT_PART:
                 if '0' <= ch <= '9':
-                    int_part.append(ch)
-                    self.read_next_char()
+                    int_part.append(self.json_char_reader.read_next_char())
 
                 elif ch == '.':
                     if not int_part:
                         raise ParseError(
                             message="Expected int_part : ###.xxxExxx but None",
                             where="In class : TokenReader\nIn method : read_number_INT_PART_.")
-                    self.read_next_char()
+                    self.json_char_reader.read_next_char()
                     has_fra_part = True
                     status = FRA_PART
 
@@ -228,9 +238,9 @@ class TokenReader(object):
                         raise ParseError(
                             message="Expected int_part : ###.xxxExxx but None",
                             where="In class : TokenReader\nIn method : read_number_INT_PART_e")
-                    self.read_next_char()
+                    self.json_char_reader.read_next_char()
                     has_exp_part = True
-                    sign_char = self.json_string[self.json_readed]
+                    sign_char = self.json_char_reader.read_top_char()
                     if (sign_char not in ('-', '+')) and (
                             not isinstance(sign_char, int)):
                         raise ParseError(
@@ -238,29 +248,28 @@ class TokenReader(object):
                             where="In class : TokenReader\nIn method : read_number_INT_PART_e")
                     elif sign_char in ('-', '+'):
                         exp_minus_sign = (sign_char == '-')
-                        self.read_next_char()
+                        self.json_char_reader.read_next_char()
                     status = EXP_PART
 
                 else:
                     if not int_part:
                         raise ParseError(
-                            message="Unexpected char:" + ch,
+                            message="Unexpected char:" + self.json_char_reader.read_next_char(),
                             where="In class : TokenReader\nIn method : read_number_INT_PART_")
                     status = NUMBER_END
 
             elif status == FRA_PART:
                 if '0' <= ch <= '9':
-                    fra_part.append(ch)
-                    self.read_next_char()
+                    fra_part.append(self.json_char_reader.read_next_char())
 
                 elif ch in ('e', 'E'):
                     if not int_part:
                         raise ParseError(
                             message="Expected int_part : ###.xxxExxx but None",
                             where="In class : TokenReader\nIn method : read_number_FRA_PART_e")
-                    self.read_next_char()
+                    self.json_char_reader.read_next_char()
                     has_exp_part = True
-                    sign_char = self.json_string[self.json_readed]
+                    sign_char = self.json_char_reader.read_top_char()
                     if (sign_char not in ('-', '+')) and (
                             not isinstance(sign_char, int)):
                         raise ParseError(
@@ -268,24 +277,23 @@ class TokenReader(object):
                             where="In class : TokenReader\nIn method : read_number_FRA_PART_e")
                     elif sign_char in ('-', '+'):
                         exp_minus_sign = (sign_char == '-')
-                        self.read_next_char()
+                        self.json_char_reader.read_next_char()
                     status = EXP_PART
 
                 else:
                     if not fra_part:
                         raise ParseError(
-                            message="Unexpected char:" + ch,
+                            message="Unexpected char:" + self.json_char_reader.read_next_char(),
                             where="In class : TokenReader\nIn method : read_number_FRA_PART_")
                     status = NUMBER_END
 
             elif status == EXP_PART:
                 if '0' <= ch <= '9':
-                    exp_part.append(ch)
-                    self.read_next_char()
+                    exp_part.append(self.json_char_reader.read_next_char())
                 else:
                     if not exp_part:
                         raise ParseError(
-                            message="Unexpected char:" + ch,
+                            message="Unexpected char:" + self.json_char_reader.read_next_char(),
                             where="In class : TokenReader\nIn method : read_number_EXP_PART_"
                         )
                     status = NUMBER_END
@@ -319,10 +327,10 @@ class TokenReader(object):
                                      "In class : TokenReader\nIn method : read_number_END")
                 if has_exp_part:
                     if exp_minus_sign:
-                        number = (int_value + fra_value) * pow(
+                        number = (int_value + fra_value) * math.pow(
                             10, -self.string_to_int(exp_part))
                     else:
-                        number = (int_value + fra_value) * pow(
+                        number = (int_value + fra_value) * math.pow(
                             10, self.string_to_int(exp_part))
 
                     if minus_sign and number > 0:  # eg: -2.2E2 < 0
@@ -330,9 +338,9 @@ class TokenReader(object):
                 else:
                     number = int_value + fra_value
 
-                if not sys.float_info.min <= number <= sys.float_info.max:
+                if number > sys.float_info.max:
                     raise ParseError(
-                        "Number is too large or small : " + str(number),
+                        "Number is too large " + str(number),
                         "In class : TokenReader\nIn method : read_number_END"
                     )
                 return number
@@ -358,5 +366,5 @@ class TokenReader(object):
         d = 0.0
         for i in range(len(chars)):
             n = int(chars[i])
-            d += 0 if n == 0 else n / pow(10, i + 1)
+            d += 0 if n == 0 else n / math.pow(10, i + 1)
         return d

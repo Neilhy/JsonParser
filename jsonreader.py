@@ -3,7 +3,7 @@
 
 import tokenreader
 import jsonstack
-from token import TokenType
+from tokentype import TokenType
 from stackitem import StackItem
 from parseerror import ParseError
 
@@ -19,10 +19,10 @@ class JsonReader(object):
     EXPECT_COMMA = 1 << 7  # ,
     EXPECT_COLON = 1 << 8  # :
     EXPECT_DOC_END = 1 << 9  # EOF
-    EXPECT_VALUE = 1<<10  # bool,string,number,null
+    EXPECT_VALUE = 1 << 10  # bool,string,number,null
 
-    def __init__(self, json_string):
-        self.token_reader = tokenreader.TokenReader(json_string)
+    def __init__(self, reader):
+        self.token_reader = tokenreader.TokenReader(reader)
         self.json_stack = jsonstack.JsonStack()
 
     def json_read(self):
@@ -36,7 +36,7 @@ class JsonReader(object):
             if current_token == TokenType.START_OBJ:
                 if JsonReader.EXPECT_OBJECT_BEGIN in expected_next_token:
                     self.json_stack.push(
-                        StackItem(StackItem.TYPE_JSON_OBJECT_BEGIN, dict())
+                        StackItem(StackItem.TYPE_JSON_OBJECT, dict())
                     )
                     expected_next_token = (
                         JsonReader.EXPECT_OBJECT_KEY,
@@ -98,7 +98,7 @@ class JsonReader(object):
                 raise ParseError("Unexpected '}'.", "Json_read:END_OBJ.")
             elif current_token == TokenType.END_LIST:
                 if JsonReader.EXPECT_LIST_END in expected_next_token:
-                    stack_item = self.json_stack.pop(StackItem.TYPE_JSON_OBJECT)
+                    stack_item = self.json_stack.pop(StackItem.TYPE_JSON_LIST)
                     if self.json_stack.is_empty():  # Reach to the EOF:[...]
                         self.json_stack.push(stack_item)
                         expected_next_token = (JsonReader.EXPECT_DOC_END,)
@@ -159,10 +159,10 @@ class JsonReader(object):
                 raise ParseError("Unexpected ',' .", "Json_read:COMMA")
 
             elif current_token == TokenType.BOOL:
-                bool_value = self.token_reader.read_boolean()
+                bool_value = self.token_reader.read_bool()
 
                 if JsonReader.EXPECT_VALUE in expected_next_token:
-                    self.json_stack.push(StackItem.create_json_value(bool_value))
+                    self.json_stack.push(StackItem(StackItem.TYPE_JSON_VALUE, bool_value))
                     expected_next_token = (JsonReader.EXPECT_DOC_END,)
                 elif JsonReader.EXPECT_OBJECT_VALUE in expected_next_token:
                     stack_item = self.json_stack.pop(
@@ -196,7 +196,7 @@ class JsonReader(object):
                 number_value = self.token_reader.read_number()
 
                 if JsonReader.EXPECT_VALUE in expected_next_token:
-                    self.json_stack.push(StackItem.create_json_value(number_value))
+                    self.json_stack.push(StackItem(StackItem.TYPE_JSON_VALUE, number_value))
                     expected_next_token = (
                         JsonReader.EXPECT_DOC_END,
                     )
@@ -232,7 +232,7 @@ class JsonReader(object):
 
                 if JsonReader.EXPECT_VALUE in expected_next_token:
                     self.json_stack.push(
-                        StackItem.create_json_value(None))
+                        StackItem(StackItem.TYPE_JSON_VALUE, None))
                     expected_next_token = (
                         JsonReader.EXPECT_DOC_END,
                     )
@@ -268,13 +268,13 @@ class JsonReader(object):
 
                 if JsonReader.EXPECT_VALUE in expected_next_token:
                     self.json_stack.push(
-                        StackItem.create_json_value(string_value))
+                        StackItem(StackItem.TYPE_JSON_VALUE, string_value))
                     expected_next_token = (
                         JsonReader.EXPECT_DOC_END,
                     )
                 elif JsonReader.EXPECT_OBJECT_KEY in expected_next_token:
                     self.json_stack.push(
-                        StackItem.create_json_object_key(string_value)
+                        StackItem(StackItem.TYPE_JSON_OBJECT_KEY, string_value)
                     )
                     expected_next_token = (
                         JsonReader.EXPECT_COLON,

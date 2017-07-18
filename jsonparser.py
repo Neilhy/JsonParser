@@ -33,7 +33,7 @@ class JsonParser(object):
             self._data = self.json_reader.json_read()
         except JsonError as json_error:
             # log.exception(msg=json_error.message)
-            print json_error
+            raise json_error
         print self._data
 
     def load_file(self, f):
@@ -49,7 +49,7 @@ class JsonParser(object):
             self._data = self.json_reader.json_read()
         except JsonError as json_error:
             # log.exception(msg=json_error.message)
-            print json_error
+            raise json_error
         print self._data
 
     def dumps(self):

@@ -15,7 +15,7 @@ class JsonLog(object):
 
     def __init__(self, name):
         self.file_name = os.path.join(
-            sys.path[0], "log", local_time+'.log'
+            'e:/JsonParser', "log", local_time+'.log'
         )  # 日志保存在log目录下
         # self.filename = self.path + os.path.sep + local_time + '.log'  # 日志文件名称
         self.name = name

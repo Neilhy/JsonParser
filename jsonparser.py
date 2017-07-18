@@ -7,6 +7,7 @@ from stringreader import StringReader
 from filereader import FileReader
 from charreader import CharReader
 from jsonwriter import JsonWriter
+from jsondeepcopy import JsonDeepCopy
 
 log = JsonLog(__name__)
 
@@ -69,6 +70,8 @@ class JsonParser(object):
         with open(f, 'w') as json_file:
             json_file.write(self.dumps())
 
+    def load_dict(self, d):
+        self._data = JsonDeepCopy().copy_deep(d)
 
 jp = JsonParser()
 # jp.loads(
@@ -168,3 +171,4 @@ jp.load_file("E:/json.txt")
 #
 jp.dump_file('e:/dump_json.txt')
 
+# jp.load_dict({"1": 1, 2: 4})

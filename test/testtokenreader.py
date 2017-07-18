@@ -1,5 +1,5 @@
 #! /usr/bin/env python
-# -*- coding:utf -*-
+# -*- coding:utf-8 -*-
 import unittest
 
 from tokenreader import TokenReader
@@ -32,8 +32,8 @@ class TokenReaderTestCase(unittest.TestCase):
                              "TokenType not equal.")
 
     def test_read_string(self):
-        json_string = '"testing"'
-        expected_string = "testing"
+        json_string = '"testing  "'
+        expected_string = "testing  "
         token_reader = TokenReader(CharReader(StringReader(json_string)))
         self.assertEqual(token_reader.read_string(), expected_string)
 

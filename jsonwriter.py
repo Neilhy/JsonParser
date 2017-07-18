@@ -3,6 +3,9 @@
 
 
 class JsonWriter(object):
+    """
+    To convert json_data to json_string
+    """
     def convert(self, json_item):
         if isinstance(json_item, dict):
             dict_string = []

@@ -77,13 +77,28 @@ class JsonParser(object):
         Attributes:
         d -- dict
         """
-        self._data = JsonDeepCopy().copy_deep(d)
+        if isinstance(d, dict):
+            self._data = JsonDeepCopy().copy_deep(d)
+        else:
+            raise ValueError("d is not a dict.")
 
     def dump_dict(self):
         """
         dump JSON_data to a dict
         """
         return JsonDeepCopy().copy_deep(self._data)
+
+    def update(self, d):
+        """
+        update the _data by d
+        :param d: new dict
+        """
+        if isinstance(d, dict):
+            for k, v in d.items():
+                if isinstance(k, str):
+                    self._data[k] = v
+        else:
+            raise ValueError("d is not a dict.")
 
     def __getitem__(self, item):
         """
@@ -216,3 +231,6 @@ jp.loads(
 # jp["bb"] = "你好"
 # print jp["b"],jp["bb"]
 # jp[1]=1
+
+# jp.update({"a": 123, "b": "不好"})
+# print jp._data

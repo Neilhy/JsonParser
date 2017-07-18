@@ -5,6 +5,9 @@ from jsonstackerror import JsonStackError
 
 
 class JsonStack(list):
+    """
+    To store the json data using stack
+    """
     def push(self, item):
         super(JsonStack, self).append(item)
 

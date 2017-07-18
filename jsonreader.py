@@ -9,6 +9,10 @@ from parseerror import ParseError
 
 
 class JsonReader(object):
+    """
+    To read json from TokenReader and check the grammar of json
+    """
+
     EXPECT_OBJECT_KEY = 1  # XXX :
     EXPECT_OBJECT_VALUE = 1 << 1  # : XXX
     EXPECT_OBJECT_BEGIN = 1 << 2  # {

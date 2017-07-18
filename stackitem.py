@@ -3,6 +3,9 @@
 
 
 class StackItem(object):
+    """
+    The stack's item that represent each value and type of json
+    """
     TYPE_JSON_OBJECT = 0  # {xx:yy}
     TYPE_JSON_LIST = 1  # [
     TYPE_JSON_OBJECT_KEY = 2  # {xx:}

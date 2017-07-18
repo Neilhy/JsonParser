@@ -3,6 +3,9 @@
 
 
 class JsonDeepCopy(object):
+    """
+    To deep copy the json_value
+    """
     def copy_deep(self, value):
         if isinstance(value, dict):
             new_dict = dict()

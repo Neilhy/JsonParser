@@ -52,8 +52,22 @@ class JsonParser(object):
         print self._data
 
     def dumps(self):
+        """
+        dumps JSON to string
+
+        """
         self.json_writer = JsonWriter()
-        print self.json_writer.convert(self._data)
+        return self.json_writer.convert(self._data)
+
+    def dump_file(self, f):
+        """
+        dump JSON to file
+
+        Attributes:
+        f -- file_path
+        """
+        with open(f, 'w') as json_file:
+            json_file.write(self.dumps())
 
 
 jp = JsonParser()
@@ -61,33 +75,33 @@ jp = JsonParser()
 #     '{"a":1}'
 # )
 #  {'City': 'SAN FRANCISCO', 'Zip': '94107', 'Country': 'US', 'precision': 'zip', 'Longitude': -122.3959, 'State': 'CA', 'Address': '', 'Latitude': 37.7668} {'City': 'SUNNYVALE', 'Zip': '94085', 'Country': 'US', 'precision': 'zip', 'Longitude': -122.02602, 'State': 'CA', 'Address': '', 'Latitude': 37.371991}
-jp.loads(
-    """
-    [
-      {
-         "precision": "zip",
-         "Latitude":  37.7668,
-         "Longitude": -122.3959,
-         "Address":   "",
-         "City":      "SAN FRANCISCO",
-         "State":     "CA",
-         "Zip":       "94107",
-         "Country":   "US"
-      },
-      {
-         "precision": "zip",
-         "Latitude":  37.371991,
-         "Longitude": -122.026020,
-         "Address":   "",
-         "City":      "SUNNYVALE",
-         "State":     "CA",
-         "Zip":       "94085",
-         "Country":   "US"
-      }
-   ]
-
-    """
-)
+# jp.loads(
+#     """
+#     [
+#       {
+#          "precision": "zip",
+#          "Latitude":  37.7668,
+#          "Longitude": -122.3959,
+#          "Address":   "",
+#          "City":      "SAN FRANCISCO",
+#          "State":     "CA",
+#          "Zip":       "94107",
+#          "Country":   "US"
+#       },
+#       {
+#          "precision": "zip",
+#          "Latitude":  37.371991,
+#          "Longitude": -122.026020,
+#          "Address":   "",
+#          "City":      "SUNNYVALE",
+#          "State":     "CA",
+#          "Zip":       "94085",
+#          "Country":   "US"
+#       }
+#    ]
+#
+#     """
+# )
 # jp.loads(
 #     """
 #     {
@@ -107,7 +121,6 @@ jp.loads(
 #     true
 #     """
 # )
-jp.dumps()
 
 # jp.loads(
 #     """
@@ -151,6 +164,7 @@ jp.dumps()
 #     """
 # )
 
-# jp.load_file("E:/json.txt")
+jp.load_file("E:/json.txt")
 #
-# jp.dumps()
+jp.dump_file('e:/dump_json.txt')
+

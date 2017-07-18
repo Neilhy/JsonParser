@@ -58,7 +58,7 @@ class JsonParser(object):
 
         """
         self.json_writer = JsonWriter()
-        return self.json_writer.convert(self._data)
+        print self.json_writer.convert(self._data)
 
     def dump_file(self, f):
         """
@@ -71,7 +71,20 @@ class JsonParser(object):
             json_file.write(self.dumps())
 
     def load_dict(self, d):
+        """
+        load JSON_data from d
+
+        Attributes:
+        d -- dict
+        """
         self._data = JsonDeepCopy().copy_deep(d)
+
+    def dump_dict(self):
+        """
+        dump JSON_data to a dict
+        """
+        return JsonDeepCopy().copy_deep(self._data)
+
 
 jp = JsonParser()
 # jp.loads(
@@ -105,20 +118,20 @@ jp = JsonParser()
 #
 #     """
 # )
-# jp.loads(
-#     """
-#     {
-# "a":1,
-# "b":[1,2,3],
-# "c":{"c1":1},
-# "d":[1,2,3,{"d1":1}],
-# "e":[1,2,3,[4,5,6]],
-# "f":{"f1":1,"f2":[1,2,3],"f3":{"f4":1}},
-# "u":"\u6ff3"
-# }
-#
-#     """
-# )
+jp.loads(
+    """
+    {
+"a":"你好",
+"b":[1,"吗",3],
+"c":{"c1":1},
+"d":[1,2,3,{"嘛1":1}],
+"e":[1,2,3,[4,5,6]],
+"f":{"f1":1,"f2":[1,2,3],"f3":{"f4":1}},
+"u":"\u6ff3"
+}
+
+    """
+)
 # jp.loads(
 #     """
 #     true
@@ -167,8 +180,10 @@ jp = JsonParser()
 #     """
 # )
 
-jp.load_file("E:/json.txt")
+# jp.load_file("E:/json.txt")
 #
-jp.dump_file('e:/dump_json.txt')
+# jp.dump_file('e:/dump_json.txt')
 
 # jp.load_dict({"1": 1, 2: 4})
+
+# print jp.dump_dict() == jp._data, jp.dump_dict() is jp._data

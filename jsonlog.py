@@ -14,15 +14,17 @@ class JsonLog(object):
     """JsonParser's log"""
 
     def __init__(self, name):
-        self.path = os.path.join(sys.path[0], "log")  # 日志保存在log目录下
-        self.filename = self.path + os.path.sep + local_time + '.log'  # 日志文件名称
+        self.file_name = os.path.join(
+            sys.path[0], "log", local_time+'.log'
+        )  # 日志保存在log目录下
+        # self.filename = self.path + os.path.sep + local_time + '.log'  # 日志文件名称
         self.name = name
         self.formatter = logging.Formatter(
             # '%(asctime)s - %(name)s[line:%(lineno)d] - %(levelname)s - %(message)s'
             '%(asctime)s - %(filename)s:%(lineno)s - %(name)s - %(message)s'
         )
         self.file_handler = logging.handlers.TimedRotatingFileHandler(
-            self.filename, 'D', 1, 10)  # 日志保留10天，一天保存一个文件
+            self.file_name, 'D', 1, 10)  # 日志保留10天，一天保存一个文件
         # self.file_handler = logging.handlers.RotatingFileHandler(
         #     self.filename, maxBytes=1024 * 1024, backupCount=5
         # )

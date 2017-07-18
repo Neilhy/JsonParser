@@ -113,26 +113,29 @@ class TokenReader(object):
                 elif ech == "t":
                     string.append("t")
                 elif ech == "u":  # read an unicode uXXXX
+                    # u = 0
+                    # for i in range(4):
+                    #     uch = self.json_char_reader.read_next_char()
+                    #     if '0' <= uch <= '9':
+                    #         u = (u << 4) + int(uch)
+                    #     elif 'a' <= uch <= 'f':
+                    #         u = (u << 4) + int(uch, 16)
+                    #     elif 'A' <= uch <= "F":
+                    #         u = (u << 4) + int(uch, 16)
                     uni_str = ''
                     for i in range(4):
                         uch = self.json_char_reader.read_next_char()
                         if '0' <= uch <= '9' or 'a' <= uch <= 'f' or "A" <= uch <= "F":
                             uni_str += uch
-
-                            # u = 0
-                            # for i in range(4):
-                            #     uch = self.json_char_reader.read_next_char()
-                            #     if '0' <= uch <= '9':
-                            #         u = (u << 4) + int(uch)
-                            #     elif 'a' <= uch <= 'f':
-                            #         u = (u << 4) + int(uch, 16)
-                            #     elif 'A' <= uch <= "F":
-                            #         u = (u << 4) + int(uch, 16)
                         else:
                             raise ParseError(
                                 message="Unexpected char:" + uch,
                                 where="In class : TokenReader\nIn method : read_string")
-                    string.append(unicode(uni_str))
+                    # string.append(unicode(u))
+                    string.append(
+                        ('\u'+uni_str).decode('unicode-escape')
+                            # .encode('utf-8')
+                    )
                 else:
                     raise ParseError(
                         message="Unexpected char:" + ech,

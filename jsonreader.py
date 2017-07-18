@@ -76,7 +76,8 @@ class JsonReader(object):
 
                             stack_item_pre_dict = self.json_stack.pop(
                                 StackItem.TYPE_JSON_OBJECT)
-                            stack_item_pre_dict.get_item_value()[item_value_key] = stack_item
+                            stack_item_pre_dict.get_item_value()[
+                                item_value_key] = stack_item
 
                             self.json_stack.push(stack_item_pre_dict)
                             expected_next_token = (
@@ -111,7 +112,8 @@ class JsonReader(object):
 
                             stack_item_pre_dict = self.json_stack.pop(
                                 StackItem.TYPE_JSON_OBJECT)
-                            stack_item_pre_dict.get_item_value()[item_value_key] = stack_item
+                            stack_item_pre_dict.get_item_value()[
+                                item_value_key] = stack_item
 
                             self.json_stack.push(stack_item_pre_dict)
                             expected_next_token = (
@@ -162,7 +164,8 @@ class JsonReader(object):
                 bool_value = self.token_reader.read_bool()
 
                 if JsonReader.EXPECT_VALUE in expected_next_token:
-                    self.json_stack.push(StackItem(StackItem.TYPE_JSON_VALUE, bool_value))
+                    self.json_stack.push(
+                        StackItem(StackItem.TYPE_JSON_VALUE, bool_value))
                     expected_next_token = (JsonReader.EXPECT_DOC_END,)
                 elif JsonReader.EXPECT_OBJECT_VALUE in expected_next_token:
                     stack_item = self.json_stack.pop(
@@ -196,7 +199,8 @@ class JsonReader(object):
                 number_value = self.token_reader.read_number()
 
                 if JsonReader.EXPECT_VALUE in expected_next_token:
-                    self.json_stack.push(StackItem(StackItem.TYPE_JSON_VALUE, number_value))
+                    self.json_stack.push(
+                        StackItem(StackItem.TYPE_JSON_VALUE, number_value))
                     expected_next_token = (
                         JsonReader.EXPECT_DOC_END,
                     )
@@ -310,5 +314,31 @@ class JsonReader(object):
                 if JsonReader.EXPECT_DOC_END in expected_next_token:
                     stack_item_last = self.json_stack.pop()
                     if self.json_stack.is_empty():
-                        return stack_item_last.get_item_value()
+                        return self.stack_item_to_json_data(stack_item_last)
                 raise ParseError("Unexpected JSON_END.", "Json_read:END_DOC")
+
+    def stack_item_to_json_data(self, json_root):
+        item_type = json_root.get_item_type()
+        if item_type in (StackItem.TYPE_JSON_OBJECT, StackItem.TYPE_JSON_LIST):
+            return self.stack_item_to_json_arr_or_dict(json_root)
+        elif item_type == StackItem.TYPE_JSON_VALUE:
+            return json_root.get_item_value()
+
+    def stack_item_to_json_arr_or_dict(self, json_root):
+        item_type = json_root.get_item_type()
+        if item_type == StackItem.TYPE_JSON_OBJECT:
+            to_parent = dict()
+            for dict_item in json_root.get_item_value().items():
+                dict_key = dict_item[0]
+                dict_value = dict_item[1]
+                if isinstance(dict_value, StackItem):
+                    dict_value = self.stack_item_to_json_arr_or_dict(dict_value)
+                to_parent[dict_key] = dict_value
+            return to_parent
+        elif item_type == StackItem.TYPE_JSON_LIST:
+            to_parent = list()
+            for list_item in json_root.get_item_value():
+                if isinstance(list_item, StackItem):
+                    list_item = self.stack_item_to_json_arr_or_dict(list_item)
+                to_parent.append(list_item)
+            return to_parent

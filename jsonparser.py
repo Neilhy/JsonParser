@@ -85,6 +85,29 @@ class JsonParser(object):
         """
         return JsonDeepCopy().copy_deep(self._data)
 
+    def __getitem__(self, item):
+        """
+        Get item by []
+        :param item: key of dict
+        :return: value of dict
+        """
+        JsonParser.check_key(item)
+        return self._data[item]
+
+    def __setitem__(self, key, value):
+        """
+        Set key,value in dict
+        :param key: key of dict
+        :param value: new value of dict
+        """
+        JsonParser.check_key(key)
+        self._data[key] = value
+
+    @staticmethod
+    def check_key(key):
+        if not isinstance(key, str):
+            raise TypeError("Key must be str type.")
+
 
 jp = JsonParser()
 # jp.loads(
@@ -187,3 +210,9 @@ jp.loads(
 # jp.load_dict({"1": 1, 2: 4})
 
 # print jp.dump_dict() == jp._data, jp.dump_dict() is jp._data
+
+# print jp["a"]
+# jp["b"] = "nicai"
+# jp["bb"] = "你好"
+# print jp["b"],jp["bb"]
+# jp[1]=1

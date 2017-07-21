@@ -59,7 +59,7 @@ class JsonParser(object):
 
         """
         self.json_writer = JsonWriter()
-        print self.json_writer.convert(self._data)
+        return self.json_writer.convert(self._data)
 
     def dump_file(self, f):
         """
@@ -125,113 +125,59 @@ class JsonParser(object):
             raise TypeError("Key must be str type.")
 
 
-jp = JsonParser()
-# jp.loads(
-#     '{"a":1}'
-# )
-#  {'City': 'SAN FRANCISCO', 'Zip': '94107', 'Country': 'US', 'precision': 'zip', 'Longitude': -122.3959, 'State': 'CA', 'Address': '', 'Latitude': 37.7668} {'City': 'SUNNYVALE', 'Zip': '94085', 'Country': 'US', 'precision': 'zip', 'Longitude': -122.02602, 'State': 'CA', 'Address': '', 'Latitude': 37.371991}
-# jp.loads(
-#     """
-#     [
-#       {
-#          "precision": "zip",
-#          "Latitude":  37.7668,
-#          "Longitude": -122.3959,
-#          "Address":   "",
-#          "City":      "SAN FRANCISCO",
-#          "State":     "CA",
-#          "Zip":       "94107",
-#          "Country":   "US"
-#       },
-#       {
-#          "precision": "zip",
-#          "Latitude":  37.371991,
-#          "Longitude": -122.026020,
-#          "Address":   "",
-#          "City":      "SUNNYVALE",
-#          "State":     "CA",
-#          "Zip":       "94085",
-#          "Country":   "US"
-#       }
-#    ]
-#
-#     """
-# )
-jp.loads(
+if __name__ == '__main__':
     """
-    {
-"a":"你好",
-"b":[1,"吗",3],
-"c":{"c1":1},
-"d":[1,2,3,{"嘛1":1}],
-"e":[1,2,3,[4,5,6]],
-"f":{"f1":1,"f2":[1,2,3],"f3":{"f4":1}},
-"u":"\u6ff3"
-}
+        示例代码
+    """
+    jp = JsonParser()
+    jp.loads(
+        """
+        [
+          {
+             "precision": "zip",
+             "Latitude":  37.7668,
+             "Longitude": -122.3959,
+             "Address":   "",
+             "City":      "SAN FRANCISCO",
+             "State":     "CA",
+             "Zip":       "94107",
+             "Country":   "US"
+          },
+          {
+             "precision": "zip",
+             "Latitude":  37.371991,
+             "Longitude": -122.026020,
+             "Address":   "",
+             "City":      "SUNNYVALE",
+             "State":     "CA",
+             "Zip":       "94085",
+             "Country":   "US"
+          }
+       ]
+    
+        """
+    )
+    print jp.dumps()
+
+    jp.loads(
+        """
+        {
+    "a":"你好",
+    "b":[1,"吗",3],
+    "c":{"c1":1},
+    "d":[1,2,3,{"嘛1":1}],
+    "e":[1,2,3,[4,5,6]],
+    "f":{"f1":1,"f2":[1,2,3],"f3":{"f4":1}},
+    "u":"\u6ff3"
+    }
 
     """
-)
-# jp.loads(
-#     """
-#     true
-#     """
-# )
+    )
+    print jp.dumps()
 
-# jp.loads(
-#     """
-#     false
-#     """
-# )
-# jp.loads(
-#     """{
-#     "a":10e-10
-#     }
-#     """
-# )
-# jp.loads(
-#     """{
-#     "b":-1e+10
-#     }
-#     """
-# )
-# jp.dumps()
-#
-# jp.loads(
-#     """"b"
-#     """
-# )
-# jp.dumps()
-#
-# jp.loads(
-#     """10
-#     """
-# )
-# jp.dumps()
+    # jp.load_file("E:/json.txt")
+    # jp.dump_file('e:/dump_json.txt')
 
-# jp.loads(
-#     """null
-#     """
-# )
-# jp.loads(
-#     """{
-#     "b":null
-#     }
-#     """
-# )
+    # jp.load_dict({"1": 1, 2: 4})
 
-# jp.load_file("E:/json.txt")
-#
-# jp.dump_file('e:/dump_json.txt')
-
-# jp.load_dict({"1": 1, 2: 4})
-
-# print jp.dump_dict() == jp._data, jp.dump_dict() is jp._data
-
-# print jp["a"]
-# jp["b"] = "nicai"
-# jp["bb"] = "你好"
-# print jp["b"],jp["bb"]
-# jp[1]=1
-
-# jp.update({"a": 123, "b": "不好"})
-# print jp._data
+    # print jp.dump_dict() == jp._data, jp.dump_dict() is jp._data

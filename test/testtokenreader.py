@@ -2,11 +2,11 @@
 # -*- coding:utf-8 -*-
 import unittest
 
-from tokenreader import TokenReader
-from tokentype import TokenType
-from stringreader import StringReader
+import jsonerror
 from charreader import CharReader
-import parseerror
+
+from jsonprocesser.tokenreader import TokenReader
+from jsonprocesser.tokenreader import TokenType
 
 
 class TokenReaderTestCase(unittest.TestCase):
@@ -25,7 +25,7 @@ class TokenReaderTestCase(unittest.TestCase):
             TokenType.END_LIST,
             TokenType.NUMBER
         ]
-        token_reader = TokenReader(CharReader(StringReader(json_string)))
+        token_reader = TokenReader(CharReader(json_string))
         for i in range(len(token_type_expect)):
             token_type = token_reader.read_next_token()
             self.assertEqual(token_type, token_type_expect[i],
@@ -34,19 +34,19 @@ class TokenReaderTestCase(unittest.TestCase):
     def test_read_string(self):
         json_string = '"testing  "'
         expected_string = "testing  "
-        token_reader = TokenReader(CharReader(StringReader(json_string)))
+        token_reader = TokenReader(CharReader(json_string))
         self.assertEqual(token_reader.read_string(), expected_string)
 
     def test_read_bool(self):
         json_string = "true"
         expected_string = True
-        token_reader = TokenReader(CharReader(StringReader(json_string)))
+        token_reader = TokenReader(CharReader(json_string))
         self.assertEqual(token_reader.read_bool(), expected_string)
 
     def test_read_null(self):
         json_string = "null"
         expected_string = None
-        token_reader = TokenReader(CharReader(StringReader(json_string)))
+        token_reader = TokenReader(CharReader(json_string))
         self.assertEqual(token_reader.read_null(), expected_string)
 
     def test_read_number(self):
@@ -58,7 +58,7 @@ class TokenReaderTestCase(unittest.TestCase):
             1, 10000000000, 9e-10, -20000, -0.000004, 1.234, 12340, -1.23
         ]
         for i in range(len(json_string)):
-            token_reader = TokenReader(CharReader(StringReader(json_string[i])))
+            token_reader = TokenReader(CharReader(json_string[i]))
             self.assertEqual(token_reader.read_number(), expected_string[i])
 
     def test_string_to_int(self):
@@ -67,11 +67,11 @@ class TokenReaderTestCase(unittest.TestCase):
         self.assertEqual(TokenReader.string_to_int(chars), expect_int)
 
         chars2 = list("12345678901234567890")
-        self.assertRaises(parseerror.ParseError, TokenReader.string_to_int,
+        self.assertRaises(jsonerror.JsonParseError, TokenReader.string_to_int,
                           chars2)
 
         chars3 = list("9223372036854775808")
-        self.assertRaises(parseerror.ParseError, TokenReader.string_to_int,
+        self.assertRaises(jsonerror.JsonParseError, TokenReader.string_to_int,
                           chars3)
 
     def test_string_to_fraction(self):
@@ -80,7 +80,7 @@ class TokenReaderTestCase(unittest.TestCase):
         self.assertAlmostEqual(TokenReader.string_to_fraction(chars), expect_int)
 
         chars2 = list("12345678901234567")
-        self.assertRaises(parseerror.ParseError, TokenReader.string_to_fraction,
+        self.assertRaises(jsonerror.JsonParseError, TokenReader.string_to_fraction,
                           chars2)
 
 

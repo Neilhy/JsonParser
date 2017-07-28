@@ -1,16 +1,14 @@
 #! /usr/bin/env python
 # -*- coding:utf-8 -*-
 
-from jsonreader import JsonReader
-from jsonerror import JsonError
-from jsonlog import JsonLog
-from stringreader import StringReader
-from filereader import FileReader
-from charreader import CharReader
-from jsonwriter import JsonWriter
-from jsondeepcopy import JsonDeepCopy
+import logging
 
-log = JsonLog(__name__)
+import jsonprocesser.jsonerror as jsonerror
+from jsonprocesser.charreader import CharReader
+from jsonprocesser.jsondeepcopy import JsonDeepCopy
+from jsonprocesser.jsonwriter import JsonWriter
+
+from jsonprocesser.jsonreader import JsonReader
 
 
 class JsonParser(object):
@@ -28,12 +26,12 @@ class JsonParser(object):
         Attributes:
         s -- JSON string
         """
-        char_reader = CharReader(StringReader(s))
+        char_reader = CharReader(s)
         self.json_reader = JsonReader(char_reader)
         try:
             self._data = self.json_reader.json_read()
-        except JsonError as json_error:
-            # log.exception(msg=json_error.message)
+        except jsonerror.JsonError as json_error:
+            logging.exception(msg=json_error.message)
             raise json_error
         print self._data
 
@@ -44,12 +42,19 @@ class JsonParser(object):
         Attributes:
         f -- file_path
         """
-        char_reader = CharReader(FileReader(f))
+        with open(f, 'r') as json_file:
+            json_string = json_file.read()
+        if json_string is None:
+            raise jsonerror.JsonFileError(
+                'Open json file error.',
+                'In JsonParser:load_file.'
+            )
+        char_reader = CharReader(json_string)
         self.json_reader = JsonReader(char_reader)
         try:
             self._data = self.json_reader.json_read()
-        except JsonError as json_error:
-            # log.exception(msg=json_error.message)
+        except jsonerror.JsonError as json_error:
+            logging.exception(msg=json_error.message)
             raise json_error
         print self._data
 

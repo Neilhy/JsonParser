@@ -1,11 +1,11 @@
 #! /usr/bin/env python
 # -*- coding:utf-8 -*-
 
-import tokenreader
+import jsonerror
 import jsonstack
-from tokentype import TokenType
-from stackitem import StackItem
-from parseerror import ParseError
+from jsonstack import StackItem
+from tokenreader import TokenReader
+from tokenreader import TokenType
 
 
 class JsonReader(object):
@@ -26,7 +26,7 @@ class JsonReader(object):
     EXPECT_VALUE = 1 << 10  # bool,string,number,null
 
     def __init__(self, reader):
-        self.token_reader = tokenreader.TokenReader(reader)
+        self.token_reader = TokenReader(reader)
         self.json_stack = jsonstack.JsonStack()
 
     def json_read(self):
@@ -47,7 +47,7 @@ class JsonReader(object):
                         JsonReader.EXPECT_OBJECT_END
                     )
                 else:
-                    raise ParseError(
+                    raise jsonerror.JsonParseError(
                         "Unexpected '{' .", "Json_read:START_OBJ.")
 
             elif current_token == TokenType.START_LIST:
@@ -62,7 +62,7 @@ class JsonReader(object):
                         JsonReader.EXPECT_OBJECT_BEGIN
                     )
                 else:
-                    raise ParseError(
+                    raise jsonerror.JsonParseError(
                         "Unexpected '['.", "Json_read:START_LIST.")
 
             elif current_token == TokenType.END_OBJ:
@@ -100,7 +100,7 @@ class JsonReader(object):
                                 JsonReader.EXPECT_LIST_END
                             )
                             continue
-                raise ParseError("Unexpected '}'.", "Json_read:END_OBJ.")
+                raise jsonerror.JsonParseError("Unexpected '}'.", "Json_read:END_OBJ.")
             elif current_token == TokenType.END_LIST:
                 if JsonReader.EXPECT_LIST_END in expected_next_token:
                     stack_item = self.json_stack.pop(StackItem.TYPE_JSON_LIST)
@@ -136,7 +136,7 @@ class JsonReader(object):
                                 JsonReader.EXPECT_LIST_END
                             )
                             continue
-                raise ParseError("Unexpected '}'.", "Json_read:END_LIST.")
+                raise jsonerror.JsonParseError("Unexpected '}'.", "Json_read:END_LIST.")
 
             elif current_token == TokenType.COLON:
                 if JsonReader.EXPECT_COLON in expected_next_token:
@@ -146,7 +146,7 @@ class JsonReader(object):
                         JsonReader.EXPECT_LIST_BEGIN
                     )
                 else:
-                    raise ParseError("Unexpected ':' .", "Json_read:COLON")
+                    raise jsonerror.JsonParseError("Unexpected ':' .", "Json_read:COLON")
 
             elif current_token == TokenType.COMMA:
                 if JsonReader.EXPECT_COMMA in expected_next_token:
@@ -162,7 +162,7 @@ class JsonReader(object):
                             JsonReader.EXPECT_LIST_VALUE
                         )
                         continue
-                raise ParseError("Unexpected ',' .", "Json_read:COMMA")
+                raise jsonerror.JsonParseError("Unexpected ',' .", "Json_read:COMMA")
 
             elif current_token == TokenType.BOOL:
                 bool_value = self.token_reader.read_bool()
@@ -197,7 +197,7 @@ class JsonReader(object):
                         JsonReader.EXPECT_LIST_END
                     )
                 else:
-                    raise ParseError("Unexpected bool.", "Json_read:BOOL")
+                    raise jsonerror.JsonParseError("Unexpected bool.", "Json_read:BOOL")
 
             elif current_token == TokenType.NUMBER:
                 number_value = self.token_reader.read_number()
@@ -233,7 +233,7 @@ class JsonReader(object):
                         JsonReader.EXPECT_LIST_END
                     )
                 else:
-                    raise ParseError("Unexpected number.", "Json_read:NUMBER")
+                    raise jsonerror.JsonParseError("Unexpected number.", "Json_read:NUMBER")
 
             elif current_token == TokenType.NULL:
                 self.token_reader.read_null()
@@ -269,7 +269,7 @@ class JsonReader(object):
                         JsonReader.EXPECT_LIST_END
                     )
                 else:
-                    raise ParseError("Unexpected null.", "Json_read:NULL")
+                    raise jsonerror.JsonParseError("Unexpected null.", "Json_read:NULL")
 
             elif current_token == TokenType.STRING:
                 string_value = self.token_reader.read_string()
@@ -312,14 +312,14 @@ class JsonReader(object):
                         JsonReader.EXPECT_LIST_END
                     )
                 else:
-                    raise ParseError("Unexpected string '\"''.",
+                    raise jsonerror.JsonParseError("Unexpected string '\"''.",
                                      "Json_read:STRING")
             elif current_token == TokenType.END_DOC:
                 if JsonReader.EXPECT_DOC_END in expected_next_token:
                     stack_item_last = self.json_stack.pop()
                     if self.json_stack.is_empty():
                         return self.stack_item_to_json_data(stack_item_last)
-                raise ParseError("Unexpected JSON_END.", "Json_read:END_DOC")
+                raise jsonerror.JsonParseError("Unexpected JSON_END.", "Json_read:END_DOC")
 
     def stack_item_to_json_data(self, json_root):
         item_type = json_root.get_item_type()

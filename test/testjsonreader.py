@@ -3,9 +3,8 @@
 
 import unittest
 
-import jsonerror
-from charreader import CharReader
-
+import jsonprocesser.jsonerror as jsonerror
+from jsonprocesser.charreader import CharReader
 from jsonprocesser.jsonreader import JsonReader
 
 

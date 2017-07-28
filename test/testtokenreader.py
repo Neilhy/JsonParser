@@ -2,8 +2,8 @@
 # -*- coding:utf-8 -*-
 import unittest
 
-import jsonerror
-from charreader import CharReader
+import jsonprocesser.jsonerror
+from jsonprocesser.charreader import CharReader
 
 from jsonprocesser.tokenreader import TokenReader
 from jsonprocesser.tokenreader import TokenType

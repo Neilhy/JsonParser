@@ -152,21 +152,21 @@ class TokenReader(object):
                 ech = self.json_char_reader.read_next_char()
 
                 if ech == "\"":
-                    string.append("\"")
+                    string.append("\\\"")
                 elif ech == "\\":
-                    string.append("\\")
+                    string.append("\\\\")
                 elif ech == "/":
-                    string.append("/")
+                    string.append("\\/")
                 elif ech == "b":
-                    string.append("b")
+                    string.append("\\b")
                 elif ech == "f":
-                    string.append("f")
+                    string.append("\\f")
                 elif ech == "n":
-                    string.append("n")
+                    string.append("\\n")
                 elif ech == "r":
-                    string.append("r")
+                    string.append("\\r")
                 elif ech == "t":
-                    string.append("t")
+                    string.append("\\t")
                 elif ech == "u":  # read an unicode uXXXX
                     # u = 0
                     # for i in range(4):
@@ -300,7 +300,7 @@ class TokenReader(object):
                     has_exp_part = True
                     sign_char = self.json_char_reader.read_top_char()
                     if (sign_char not in ('-', '+')) and (
-                            not isinstance(sign_char, int)):
+                                '0' > sign_char) and (sign_char > '9'):
                         raise jsonerror.JsonParseError(
                             message="Expected '-' or '+' or digit but is " + sign_char,
                             where="In class : TokenReader\nIn method : read_number_INT_PART_e")
@@ -329,7 +329,7 @@ class TokenReader(object):
                     has_exp_part = True
                     sign_char = self.json_char_reader.read_top_char()
                     if (sign_char not in ('-', '+')) and (
-                            not isinstance(sign_char, int)):
+                                '0' > sign_char) and (sign_char > '9'):
                         raise jsonerror.JsonParseError(
                             message="Expected '-' or '+' or digit but is " + sign_char,
                             where="In class : TokenReader\nIn method : read_number_FRA_PART_e")

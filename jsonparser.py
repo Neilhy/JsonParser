@@ -33,7 +33,9 @@ class JsonParser(object):
         except jsonerror.JsonError as json_error:
             logging.exception(msg=json_error.message)
             raise json_error
-        print self._data
+
+
+        return self._data
 
     def load_file(self, f):
         """
@@ -64,7 +66,7 @@ class JsonParser(object):
 
         """
         self.json_writer = JsonWriter()
-        return self.json_writer.convert(self._data)
+        return unicode(self.json_writer.convert(self._data))
 
     def dump_file(self, f):
         """

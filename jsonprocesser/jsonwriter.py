@@ -10,38 +10,34 @@ class JsonWriter(object):
     def convert(self, json_item):
         if isinstance(json_item, dict):
             dict_string = []
-            dict_string_begin = u'{'
-            dict_string_end = u'}'
+            dict_string_begin = '{'
+            dict_string_end = '}'
             for dict_item in json_item.items():
-                dict_string_key = u'{}{}{}'.format('"', unicode(dict_item[0]),
-                                                   '"')
+                dict_string_key = '{}{}{}'.format('"', dict_item[0], '"')
                 dict_string_value = self.convert(dict_item[1])
                 # dict_string.append(dict_string_key + u':' + unicode(dict_string_value))
-                dict_string.append(u'{}{}{}'.format(dict_string_key, u':',
-                                                    unicode(dict_string_value)))
-            return unicode(
-                dict_string_begin + u','.join(dict_string) + dict_string_end)
+                dict_string.append('{}{}{}'.format(dict_string_key, ': ', dict_string_value))
+            return dict_string_begin + ', '.join(dict_string) + dict_string_end
         elif isinstance(json_item, list):
             list_string = []
-            list_string_begin = u'['
-            list_string_end = u']'
+            list_string_begin = '['
+            list_string_end = ']'
             for list_item in json_item:
                 list_item = self.convert(list_item)
                 list_string.append(list_item)
-            return unicode(
-                list_string_begin + u','.join(list_string) + list_string_end)
+            return list_string_begin + ', '.join(list_string) + list_string_end
         elif isinstance(json_item, bool):
             if json_item:
-                json_string = u'true'
+                json_string = 'true'
             else:
-                json_string = u'false'
+                json_string = 'false'
             return json_string
         elif json_item is None:
-            return u'null'
+            return 'null'
         elif isinstance(json_item, unicode):  # include unicode
-            return u'"' + json_item.encode('unicode-escape') + u'"'
+            return '"' + json_item.encode('unicode-escape') + '"'
         elif isinstance(json_item, str):
-            return u'{}{}{}'.format(u'"', unicode(json_item), u'"')
+            return '{}{}{}'.format('"', json_item, '"')
         else:
-            # return str(json_item)
-            return unicode(json_item)
+            return str(json_item)
+            # return unicode(json_item)

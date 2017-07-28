@@ -154,7 +154,7 @@ class TokenReader(object):
                 if ech == "\"":
                     string.append("\\\"")
                 elif ech == "\\":
-                    string.append("\\\\")
+                    string.append("\\")
                 elif ech == "/":
                     string.append("\\/")
                 elif ech == "b":

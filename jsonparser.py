@@ -66,7 +66,7 @@ class JsonParser(object):
 
         """
         self.json_writer = JsonWriter()
-        return unicode(self.json_writer.convert(self._data))
+        return self.json_writer.convert(self._data)
 
     def dump_file(self, f):
         """

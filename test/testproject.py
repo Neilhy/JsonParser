@@ -7,14 +7,12 @@ import json
 import jsonparser
 
 
-# class JsonProjectTestCase(unittest.TestCase):
-class JsonProjectTestCase:
+class JsonProjectTestCase(unittest.TestCase):  # class JsonProjectTestCase:
     """
     Testing the project using teacher's data_set
     """
 
-    # def setUp(self):
-    def __init__(self):
+    def setUp(self):  # def __init__(self):
         self.json_ok = [
             ('{}', 1),
             ('{"":""}', 1),
@@ -72,18 +70,18 @@ class JsonProjectTestCase:
         self.self_json = jsonparser.JsonParser()
 
     def test_json_ok1(self):
-        """
-        for json_test in self.json_ok:
-            self.assertEqual(self.sys_json.dumps(json_test[0]),
-                             self.self_json.loads(json_test[0]))
+        for json_test in self.json_ok2:
+            self.self_json.loads(json_test[0])
+            string = self.self_json.dumps()
+            self.assertEqual(self.sys_json.dumps(self.sys_json.loads(json_test[0])),
+                             string)
             self.grade += 1
         print self.grade
-        """
-        for json_test in self.json_ok2:
-            print self.sys_json.loads(json_test[0])
-            self.self_json.loads(json_test[0])
-            print self.self_json.dumps()
-
+        # for json_test in self.json_ok2:
+        # print self.sys_json.dumps(json_test[0])
+        # self.self_json.loads(json_test[0])
+        # print self.self_json._data
+        # print self.self_json.dumps(),type(self.self_json.dumps())
 
 
 if __name__ == '__main__':

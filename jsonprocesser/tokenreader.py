@@ -152,21 +152,21 @@ class TokenReader(object):
                 ech = self.json_char_reader.read_next_char()
 
                 if ech == "\"":
-                    string.append("\\\"")
+                    string.append('\"')
                 elif ech == "\\":
                     string.append("\\")
                 elif ech == "/":
-                    string.append("\\/")
+                    string.append("/")
                 elif ech == "b":
-                    string.append("\\b")
+                    string.append("\b")
                 elif ech == "f":
-                    string.append("\\f")
+                    string.append("\f")
                 elif ech == "n":
-                    string.append("\\n")
+                    string.append("\n")
                 elif ech == "r":
-                    string.append("\\r")
+                    string.append("\r")
                 elif ech == "t":
-                    string.append("\\t")
+                    string.append("\t")
                 elif ech == "u":  # read an unicode uXXXX
                     # u = 0
                     # for i in range(4):

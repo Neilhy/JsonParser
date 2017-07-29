@@ -5,16 +5,15 @@ import unittest
 
 import json
 import jsonparser
+import jsonprocesser.jsonerror as jsonerror
 
 
-# class JsonProjectTestCase(unittest.TestCase):
-class JsonProjectTestCase:
+class JsonProjectTestCase(unittest.TestCase):
     """
     Testing the project using teacher's data_set
     """
 
-    # def setUp(self):
-    def __init__(self):
+    def setUp(self):
         self.json_ok = [
             ('{}', 1),
             ('{"":""}', 1),
@@ -75,8 +74,9 @@ class JsonProjectTestCase:
         for json_test in self.json_ok:
             self.self_json.loads(json_test[0])
             string = self.self_json.dumps()
-            self.assertEqual(self.sys_json.dumps(self.sys_json.loads(json_test[0])),
-                             string)
+            self.assertEqual(
+                self.sys_json.dumps(self.sys_json.loads(json_test[0])),
+                string)
             self.grade += 1
         print self.grade
 
@@ -90,15 +90,27 @@ class JsonProjectTestCase:
             self.grade += 1
         print self.grade
 
-    def tes_json_ex(self):
+    def test_json_ex(self):
         for json_test in self.json_ex:
-            self.self_json.loads(json_test[0])
-            string = self.self_json.dumps()
-            print self.sys_json.dumps(self.sys_json.loads(json_test[0]))
-            print string
+            jp = jsonparser.JsonParser()
+            self.assertRaises(jsonerror.JsonError, jp.loads, json_test[0])
             self.grade += 1
         print self.grade
 
-if __name__ == '__main__':
-    jp = JsonProjectTestCase()
-    jp.tes_json_ex()
+    def test_json_ok_dict(self):
+        for json_test in self.json_ok:
+            self.self_json.loads(json_test[0])
+            self.assertDictEqual(
+                self.sys_json.loads(json_test[0]),
+                self.self_json._data)
+            self.grade += 1
+        print self.grade
+
+    def test_json_ok2_dict(self):
+        for json_test in self.json_ok2:
+            self.self_json.loads(json_test[0])
+            self.assertDictEqual(
+                self.sys_json.loads(json_test[0]),
+                self.self_json._data)
+            self.grade += 1
+        print self.grade

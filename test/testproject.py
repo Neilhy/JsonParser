@@ -7,12 +7,14 @@ import json
 import jsonparser
 
 
-class JsonProjectTestCase(unittest.TestCase):  # class JsonProjectTestCase:
+# class JsonProjectTestCase(unittest.TestCase):
+class JsonProjectTestCase:
     """
     Testing the project using teacher's data_set
     """
 
-    def setUp(self):  # def __init__(self):
+    # def setUp(self):
+    def __init__(self):
         self.json_ok = [
             ('{}', 1),
             ('{"":""}', 1),
@@ -38,7 +40,7 @@ class JsonProjectTestCase(unittest.TestCase):  # class JsonProjectTestCase:
             ('{"d{": "}dd", "a":123}', 2),
             ('{"a": {"a": {"a": 123}}}', 2),
             ('{"a": {"a": {"a": [1,2,[3]]}}}', 2),
-            ('{"a": "\\u7f51\\u6613CC\\"\'"}', 3),
+            ('{"a": "\\u7f51\\u6613\\b\\r\\n\\t\\f\\/CC\\"\'"}', 3),
 
             ('{"a":1e-1, "cc": -123.4}', 2),
             ('{ "{ab" : "}123", "\\\\a[": "]\\\\"}', 3),
@@ -69,21 +71,34 @@ class JsonProjectTestCase(unittest.TestCase):  # class JsonProjectTestCase:
         self.sys_json = json
         self.self_json = jsonparser.JsonParser()
 
-    def test_json_ok1(self):
-        for json_test in self.json_ok2:
+    def test_json_ok(self):
+        for json_test in self.json_ok:
             self.self_json.loads(json_test[0])
             string = self.self_json.dumps()
             self.assertEqual(self.sys_json.dumps(self.sys_json.loads(json_test[0])),
                              string)
             self.grade += 1
         print self.grade
-        # for json_test in self.json_ok2:
-        # print self.sys_json.dumps(json_test[0])
-        # self.self_json.loads(json_test[0])
-        # print self.self_json._data
-        # print self.self_json.dumps(),type(self.self_json.dumps())
 
+    def test_json_ok2(self):
+        for json_test in self.json_ok2:
+            self.self_json.loads(json_test[0])
+            string = self.self_json.dumps()
+            self.assertEqual(
+                self.sys_json.dumps(self.sys_json.loads(json_test[0])),
+                string)
+            self.grade += 1
+        print self.grade
+
+    def tes_json_ex(self):
+        for json_test in self.json_ex:
+            self.self_json.loads(json_test[0])
+            string = self.self_json.dumps()
+            print self.sys_json.dumps(self.sys_json.loads(json_test[0]))
+            print string
+            self.grade += 1
+        print self.grade
 
 if __name__ == '__main__':
     jp = JsonProjectTestCase()
-    jp.test_json_ok1()
+    jp.tes_json_ex()

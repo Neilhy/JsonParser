@@ -2,6 +2,7 @@
 # -*- coding:utf-8 -*-
 
 import logging
+import codecs
 
 import jsonprocesser.jsonerror as jsonerror
 from jsonprocesser.charreader import CharReader
@@ -34,7 +35,6 @@ class JsonParser(object):
             logging.exception(msg=json_error.message)
             raise json_error
 
-
         return self._data
 
     def load_file(self, f):
@@ -45,7 +45,7 @@ class JsonParser(object):
         f -- file_path
         """
         with open(f, 'r') as json_file:
-            json_string = json_file.read()
+            json_string = json_file.read().decode('gbk')
         if json_string is None:
             raise jsonerror.JsonFileError(
                 'Open json file error.',
@@ -76,7 +76,7 @@ class JsonParser(object):
         f -- file_path
         """
         with open(f, 'w') as json_file:
-            json_file.write(self.dumps())
+            json_file.write(self.dumps().decode('utf-8'))
 
     def load_dict(self, d):
         """
@@ -161,13 +161,13 @@ if __name__ == '__main__':
              "Country":   "US"
           }
        ]
-    
+
         """
     )
     print jp.dumps()
 
     jp.loads(
-        """
+        u"""
         {
     "a":"你好",
     "b":[1,"吗",3],
@@ -182,8 +182,8 @@ if __name__ == '__main__':
     )
     print jp.dumps()
 
-    # jp.load_file("E:/json.txt")
-    # jp.dump_file('e:/dump_json.txt')
+    jp.load_file("d:/test.txt")
+    jp.dump_file('d:/dump.txt')
 
     # jp.load_dict({"1": 1, 2: 4})
 

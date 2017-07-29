@@ -25,16 +25,113 @@ class JsonReader(object):
     EXPECT_DOC_END = 1 << 9  # EOF
     EXPECT_VALUE = 1 << 10  # bool,string,number,null
 
+    TRANSFER_TABLE = {
+        0: (
+            EXPECT_OBJECT_BEGIN,
+            EXPECT_LIST_BEGIN,
+            EXPECT_VALUE
+        ),
+        TokenType.START_OBJ: (
+            EXPECT_OBJECT_KEY,
+            EXPECT_OBJECT_END
+        ),
+        TokenType.START_LIST: (
+            EXPECT_LIST_END,
+            EXPECT_LIST_VALUE,
+            EXPECT_LIST_BEGIN,
+            EXPECT_OBJECT_BEGIN
+        ),
+        TokenType.END_OBJ: (
+            EXPECT_DOC_END,
+        ),
+
+        TokenType.END_OBJ * StackItem.TYPE_JSON_OBJECT_KEY: (
+            EXPECT_COMMA,
+            EXPECT_OBJECT_END
+        ),
+        TokenType.END_OBJ * StackItem.TYPE_JSON_LIST: (
+            EXPECT_COMMA,
+            EXPECT_LIST_END
+        ),
+        TokenType.END_LIST: (
+            EXPECT_DOC_END,
+        ),
+        TokenType.END_LIST * StackItem.TYPE_JSON_OBJECT_KEY: (
+            EXPECT_COMMA,
+            EXPECT_OBJECT_END
+        ),
+        TokenType.END_LIST * StackItem.TYPE_JSON_LIST: (
+            EXPECT_COMMA,
+            EXPECT_LIST_END
+        ),
+        TokenType.COLON: (
+            EXPECT_OBJECT_VALUE,
+            EXPECT_OBJECT_BEGIN,
+            EXPECT_LIST_BEGIN
+        ),
+        TokenType.COMMA * EXPECT_OBJECT_END: (
+            EXPECT_OBJECT_KEY,
+        ),
+        TokenType.COMMA * EXPECT_LIST_END: (
+            EXPECT_LIST_BEGIN,
+            EXPECT_OBJECT_BEGIN,
+            EXPECT_LIST_VALUE
+        ),
+        TokenType.BOOL * EXPECT_VALUE: (
+            EXPECT_DOC_END,
+        ),
+        TokenType.BOOL * EXPECT_OBJECT_VALUE: (
+            EXPECT_COMMA,
+            EXPECT_OBJECT_END
+        ),
+        TokenType.BOOL * EXPECT_LIST_VALUE: (
+            EXPECT_COMMA,
+            EXPECT_LIST_END
+        ),
+        TokenType.NUMBER * EXPECT_VALUE: (
+            EXPECT_DOC_END,
+        ),
+        TokenType.NUMBER * EXPECT_OBJECT_VALUE: (
+            EXPECT_COMMA,
+            EXPECT_OBJECT_END
+        ),
+        TokenType.NUMBER * EXPECT_LIST_VALUE: (
+            EXPECT_COMMA,
+            EXPECT_LIST_END
+        ),
+        TokenType.NULL * EXPECT_VALUE: (
+            EXPECT_DOC_END,
+        ),
+        TokenType.NULL * EXPECT_OBJECT_VALUE: (
+            EXPECT_COMMA,
+            EXPECT_OBJECT_END
+        ),
+        TokenType.NULL * EXPECT_LIST_VALUE: (
+            EXPECT_COMMA,
+            EXPECT_LIST_END
+        ),
+        TokenType.STRING * EXPECT_VALUE: (
+            EXPECT_DOC_END,
+        ),
+        TokenType.STRING * EXPECT_OBJECT_KEY: (
+            EXPECT_COLON,
+        ),
+        TokenType.STRING * EXPECT_OBJECT_VALUE: (
+            EXPECT_COMMA,
+            EXPECT_OBJECT_END
+        ),
+        TokenType.STRING * EXPECT_LIST_VALUE: (
+            EXPECT_COMMA,
+            EXPECT_LIST_END
+        )
+    }
+
     def __init__(self, reader):
         self.token_reader = TokenReader(reader)
         self.json_stack = jsonstack.JsonStack()
 
     def json_read(self):
-        expected_next_token = (
-            JsonReader.EXPECT_OBJECT_BEGIN,
-            JsonReader.EXPECT_LIST_BEGIN,
-            JsonReader.EXPECT_VALUE
-        )
+        expected_next_token = JsonReader.TRANSFER_TABLE[0]  # starting state
         while True:
             current_token = self.token_reader.read_next_token()
             if current_token == TokenType.START_OBJ:
@@ -42,10 +139,8 @@ class JsonReader(object):
                     self.json_stack.push(
                         StackItem(StackItem.TYPE_JSON_OBJECT, dict())
                     )
-                    expected_next_token = (
-                        JsonReader.EXPECT_OBJECT_KEY,
-                        JsonReader.EXPECT_OBJECT_END
-                    )
+                    expected_next_token = JsonReader.TRANSFER_TABLE[
+                        current_token]
                 else:
                     raise jsonerror.JsonParseError(
                         "Unexpected '{' .", "Json_read:START_OBJ.")
@@ -55,12 +150,8 @@ class JsonReader(object):
                     self.json_stack.push(
                         StackItem(StackItem.TYPE_JSON_LIST, list())
                     )
-                    expected_next_token = (
-                        JsonReader.EXPECT_LIST_END,
-                        JsonReader.EXPECT_LIST_VALUE,
-                        JsonReader.EXPECT_LIST_BEGIN,
-                        JsonReader.EXPECT_OBJECT_BEGIN
-                    )
+                    expected_next_token = JsonReader.TRANSFER_TABLE[
+                        current_token]
                 else:
                     raise jsonerror.JsonParseError(
                         "Unexpected '['.", "Json_read:START_LIST.")
@@ -70,7 +161,8 @@ class JsonReader(object):
                     stack_item = self.json_stack.pop(StackItem.TYPE_JSON_OBJECT)
                     if self.json_stack.is_empty():  # Reach to the EOF:{...}
                         self.json_stack.push(stack_item)
-                        expected_next_token = (JsonReader.EXPECT_DOC_END,)
+                        expected_next_token = JsonReader.TRANSFER_TABLE[
+                            current_token]
                         continue
                     else:
                         stack_item_pre = self.json_stack.pop()
@@ -84,10 +176,9 @@ class JsonReader(object):
                                 item_value_key] = stack_item
 
                             self.json_stack.push(stack_item_pre_dict)
-                            expected_next_token = (
-                                JsonReader.EXPECT_COMMA,
-                                JsonReader.EXPECT_OBJECT_END
-                            )
+                            expected_next_token = JsonReader.TRANSFER_TABLE[
+                                current_token * StackItem.TYPE_JSON_OBJECT_KEY
+                                ]
                             continue
                         # [ ,{...}, ]
                         elif stack_item_pre.get_item_type() == StackItem.TYPE_JSON_LIST:
@@ -95,10 +186,9 @@ class JsonReader(object):
                             item_value_list.append(stack_item)
 
                             self.json_stack.push(stack_item_pre)
-                            expected_next_token = (
-                                JsonReader.EXPECT_COMMA,
-                                JsonReader.EXPECT_LIST_END
-                            )
+                            expected_next_token = JsonReader.TRANSFER_TABLE[
+                                current_token * StackItem.TYPE_JSON_LIST
+                                ]
                             continue
                 raise jsonerror.JsonParseError("Unexpected '}'.",
                                                "Json_read:END_OBJ.")
@@ -107,7 +197,9 @@ class JsonReader(object):
                     stack_item = self.json_stack.pop(StackItem.TYPE_JSON_LIST)
                     if self.json_stack.is_empty():  # Reach to the EOF:[...]
                         self.json_stack.push(stack_item)
-                        expected_next_token = (JsonReader.EXPECT_DOC_END,)
+                        expected_next_token = JsonReader.TRANSFER_TABLE[
+                            current_token
+                        ]
                         continue
                     else:
                         stack_item_pre = self.json_stack.pop()
@@ -121,10 +213,9 @@ class JsonReader(object):
                                 item_value_key] = stack_item
 
                             self.json_stack.push(stack_item_pre_dict)
-                            expected_next_token = (
-                                JsonReader.EXPECT_COMMA,
-                                JsonReader.EXPECT_OBJECT_END
-                            )
+                            expected_next_token = JsonReader.TRANSFER_TABLE[
+                                current_token*StackItem.TYPE_JSON_OBJECT_KEY
+                            ]
                             continue
                         # [ ,[...], ]
                         elif stack_item_pre.get_item_type() == StackItem.TYPE_JSON_LIST:
@@ -132,21 +223,18 @@ class JsonReader(object):
                             item_value_list.append(stack_item)
 
                             self.json_stack.push(stack_item_pre)
-                            expected_next_token = (
-                                JsonReader.EXPECT_COMMA,
-                                JsonReader.EXPECT_LIST_END
-                            )
+                            expected_next_token = JsonReader.TRANSFER_TABLE[
+                                current_token*StackItem.TYPE_JSON_LIST
+                            ]
                             continue
                 raise jsonerror.JsonParseError("Unexpected '}'.",
                                                "Json_read:END_LIST.")
 
             elif current_token == TokenType.COLON:
                 if JsonReader.EXPECT_COLON in expected_next_token:
-                    expected_next_token = (
-                        JsonReader.EXPECT_OBJECT_VALUE,
-                        JsonReader.EXPECT_OBJECT_BEGIN,
-                        JsonReader.EXPECT_LIST_BEGIN
-                    )
+                    expected_next_token = JsonReader.TRANSFER_TABLE[
+                        current_token
+                    ]
                 else:
                     raise jsonerror.JsonParseError("Unexpected ':' .",
                                                    "Json_read:COLON")
@@ -154,16 +242,14 @@ class JsonReader(object):
             elif current_token == TokenType.COMMA:
                 if JsonReader.EXPECT_COMMA in expected_next_token:
                     if JsonReader.EXPECT_OBJECT_END in expected_next_token:  # {,}
-                        expected_next_token = (
-                            JsonReader.EXPECT_OBJECT_KEY,
-                        )
+                        expected_next_token = JsonReader.TRANSFER_TABLE[
+                            current_token * JsonReader.EXPECT_OBJECT_END
+                        ]
                         continue
                     elif JsonReader.EXPECT_LIST_END in expected_next_token:  # [,]
-                        expected_next_token = (
-                            JsonReader.EXPECT_LIST_BEGIN,
-                            JsonReader.EXPECT_OBJECT_BEGIN,
-                            JsonReader.EXPECT_LIST_VALUE
-                        )
+                        expected_next_token = JsonReader.TRANSFER_TABLE[
+                            current_token * JsonReader.EXPECT_LIST_END
+                        ]
                         continue
                 raise jsonerror.JsonParseError("Unexpected ',' .",
                                                "Json_read:COMMA")
@@ -174,7 +260,9 @@ class JsonReader(object):
                 if JsonReader.EXPECT_VALUE in expected_next_token:
                     self.json_stack.push(
                         StackItem(StackItem.TYPE_JSON_VALUE, bool_value))
-                    expected_next_token = (JsonReader.EXPECT_DOC_END,)
+                    expected_next_token = JsonReader.TRANSFER_TABLE[
+                        current_token*JsonReader.EXPECT_VALUE
+                    ]
                 elif JsonReader.EXPECT_OBJECT_VALUE in expected_next_token:
                     stack_item = self.json_stack.pop(
                         StackItem.TYPE_JSON_OBJECT_KEY)
@@ -185,10 +273,9 @@ class JsonReader(object):
                         stack_item.get_item_value()] = bool_value
                     self.json_stack.push(stack_item_pre_dict)
 
-                    expected_next_token = (
-                        JsonReader.EXPECT_COMMA,
-                        JsonReader.EXPECT_OBJECT_END
-                    )
+                    expected_next_token = JsonReader.TRANSFER_TABLE[
+                        current_token * JsonReader.EXPECT_OBJECT_VALUE
+                    ]
                 elif JsonReader.EXPECT_LIST_VALUE in expected_next_token:
                     stack_item_pre_list = self.json_stack.pop(
                         StackItem.TYPE_JSON_LIST)
@@ -196,10 +283,9 @@ class JsonReader(object):
                     stack_item_pre_list.get_item_value().append(bool_value)
                     self.json_stack.push(stack_item_pre_list)
 
-                    expected_next_token = (
-                        JsonReader.EXPECT_COMMA,
-                        JsonReader.EXPECT_LIST_END
-                    )
+                    expected_next_token = JsonReader.TRANSFER_TABLE[
+                        current_token * JsonReader.EXPECT_LIST_VALUE
+                    ]
                 else:
                     raise jsonerror.JsonParseError("Unexpected bool.",
                                                    "Json_read:BOOL")
@@ -210,9 +296,9 @@ class JsonReader(object):
                 if JsonReader.EXPECT_VALUE in expected_next_token:
                     self.json_stack.push(
                         StackItem(StackItem.TYPE_JSON_VALUE, number_value))
-                    expected_next_token = (
-                        JsonReader.EXPECT_DOC_END,
-                    )
+                    expected_next_token = JsonReader.TRANSFER_TABLE[
+                        current_token * JsonReader.EXPECT_VALUE
+                    ]
                 elif JsonReader.EXPECT_OBJECT_VALUE in expected_next_token:
                     stack_item = self.json_stack.pop(
                         StackItem.TYPE_JSON_OBJECT_KEY)
@@ -222,10 +308,9 @@ class JsonReader(object):
                     stack_item_pre_dict.get_item_value()[
                         stack_item.get_item_value()] = number_value
                     self.json_stack.push(stack_item_pre_dict)
-                    expected_next_token = (
-                        JsonReader.EXPECT_COMMA,
-                        JsonReader.EXPECT_OBJECT_END
-                    )
+                    expected_next_token = JsonReader.TRANSFER_TABLE[
+                        current_token * JsonReader.EXPECT_OBJECT_VALUE
+                    ]
                 elif JsonReader.EXPECT_LIST_VALUE in expected_next_token:
                     stack_item_pre_list = self.json_stack.pop(
                         StackItem.TYPE_JSON_LIST)
@@ -233,10 +318,9 @@ class JsonReader(object):
                     stack_item_pre_list.get_item_value().append(number_value)
                     self.json_stack.push(stack_item_pre_list)
 
-                    expected_next_token = (
-                        JsonReader.EXPECT_COMMA,
-                        JsonReader.EXPECT_LIST_END
-                    )
+                    expected_next_token = JsonReader.TRANSFER_TABLE[
+                        current_token * JsonReader.EXPECT_LIST_VALUE
+                    ]
                 else:
                     raise jsonerror.JsonParseError("Unexpected number.",
                                                    "Json_read:NUMBER")
@@ -247,9 +331,9 @@ class JsonReader(object):
                 if JsonReader.EXPECT_VALUE in expected_next_token:
                     self.json_stack.push(
                         StackItem(StackItem.TYPE_JSON_VALUE, None))
-                    expected_next_token = (
-                        JsonReader.EXPECT_DOC_END,
-                    )
+                    expected_next_token = JsonReader.TRANSFER_TABLE[
+                        current_token * JsonReader.EXPECT_VALUE
+                    ]
                 elif JsonReader.EXPECT_OBJECT_VALUE in expected_next_token:
                     stack_item = self.json_stack.pop(
                         StackItem.TYPE_JSON_OBJECT_KEY)
@@ -259,10 +343,9 @@ class JsonReader(object):
                     stack_item_pre_dict.get_item_value()[
                         stack_item.get_item_value()] = None
                     self.json_stack.push(stack_item_pre_dict)
-                    expected_next_token = (
-                        JsonReader.EXPECT_COMMA,
-                        JsonReader.EXPECT_OBJECT_END
-                    )
+                    expected_next_token = JsonReader.TRANSFER_TABLE[
+                        current_token * JsonReader.EXPECT_OBJECT_VALUE
+                    ]
                 elif JsonReader.EXPECT_LIST_VALUE in expected_next_token:
                     stack_item_pre_list = self.json_stack.pop(
                         StackItem.TYPE_JSON_LIST)
@@ -270,10 +353,9 @@ class JsonReader(object):
                     stack_item_pre_list.get_item_value().append(None)
                     self.json_stack.push(stack_item_pre_list)
 
-                    expected_next_token = (
-                        JsonReader.EXPECT_COMMA,
-                        JsonReader.EXPECT_LIST_END
-                    )
+                    expected_next_token = JsonReader.TRANSFER_TABLE[
+                        current_token * JsonReader.EXPECT_LIST_VALUE
+                    ]
                 else:
                     raise jsonerror.JsonParseError("Unexpected null.",
                                                    "Json_read:NULL")
@@ -285,17 +367,17 @@ class JsonReader(object):
                     self.json_stack.push(
                         StackItem(StackItem.TYPE_JSON_VALUE,
                                   unicode(string_value)))
-                    expected_next_token = (
-                        JsonReader.EXPECT_DOC_END,
-                    )
+                    expected_next_token = JsonReader.TRANSFER_TABLE[
+                        current_token * JsonReader.EXPECT_VALUE
+                    ]
                 elif JsonReader.EXPECT_OBJECT_KEY in expected_next_token:
                     self.json_stack.push(
                         StackItem(StackItem.TYPE_JSON_OBJECT_KEY,
                                   unicode(string_value))
                     )
-                    expected_next_token = (
-                        JsonReader.EXPECT_COLON,
-                    )
+                    expected_next_token = JsonReader.TRANSFER_TABLE[
+                        current_token * JsonReader.EXPECT_OBJECT_KEY
+                    ]
                 elif JsonReader.EXPECT_OBJECT_VALUE in expected_next_token:
                     stack_item = self.json_stack.pop(
                         StackItem.TYPE_JSON_OBJECT_KEY)
@@ -305,10 +387,9 @@ class JsonReader(object):
                     stack_item_pre_dict.get_item_value()[
                         stack_item.get_item_value()] = unicode(string_value)
                     self.json_stack.push(stack_item_pre_dict)
-                    expected_next_token = (
-                        JsonReader.EXPECT_COMMA,
-                        JsonReader.EXPECT_OBJECT_END
-                    )
+                    expected_next_token = JsonReader.TRANSFER_TABLE[
+                        current_token * JsonReader.EXPECT_OBJECT_VALUE
+                    ]
                 elif JsonReader.EXPECT_LIST_VALUE in expected_next_token:
                     stack_item_pre_list = self.json_stack.pop(
                         StackItem.TYPE_JSON_LIST)
@@ -316,10 +397,9 @@ class JsonReader(object):
                     stack_item_pre_list.get_item_value().append(string_value)
                     self.json_stack.push(stack_item_pre_list)
 
-                    expected_next_token = (
-                        JsonReader.EXPECT_COMMA,
-                        JsonReader.EXPECT_LIST_END
-                    )
+                    expected_next_token = JsonReader.TRANSFER_TABLE[
+                        current_token * JsonReader.EXPECT_LIST_VALUE
+                    ]
                 else:
                     raise jsonerror.JsonParseError("Unexpected string '\"''.",
                                                    "Json_read:STRING")
@@ -356,3 +436,8 @@ class JsonReader(object):
                     list_item = self.stack_item_to_json_arr_or_dict(list_item)
                 to_parent.append(list_item)
             return to_parent
+
+if __name__ == '__main__':
+    jr=JsonReader(None)
+    var=jr.TRANSFER_TABLE.items()
+    print [i[0] for i in var]

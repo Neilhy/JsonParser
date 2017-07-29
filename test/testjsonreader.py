@@ -15,17 +15,17 @@ class JsonReaderTestCase(unittest.TestCase):
 
     def test_json_value_string(self):
         json_string = [
-            # '""',
-            # '"abc"',
-            # '" "',
-            # '"\t"',
+            '""',
+            '"abc"',
+            '" "',
+            '"\t"',
             u'"你好\a"',
             '"\u4f60\u597d"',
             '"\u1234"']
         json_string_expected = [
-            # '', 'abc',
-            # ' ',
-            # '\t',
+            '', 'abc',
+            ' ',
+            '\t',
             u'你好\a',
             u'你好', u'\u1234'
         ]

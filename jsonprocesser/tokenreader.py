@@ -66,7 +66,7 @@ class TokenType:
     STRING = 7
     BOOL = 8
     COLON = 9
-    COMMA = 10
+    COMMA = 13
     END_DOC = 11
 
 

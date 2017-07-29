@@ -8,10 +8,10 @@ class StackItem(object):
     """
     The stack's item that represent each value and type of json
     """
-    TYPE_JSON_OBJECT = 0  # {xx:yy}
-    TYPE_JSON_LIST = 1  # [
-    TYPE_JSON_OBJECT_KEY = 2  # {xx:}
-    TYPE_JSON_VALUE = 3  # bool,string,number,null
+    TYPE_JSON_OBJECT = 12  # {xx:yy}
+    TYPE_JSON_LIST = 13  # [
+    TYPE_JSON_OBJECT_KEY = 14  # {xx:}
+    TYPE_JSON_VALUE = 15  # bool,string,number,null
 
     def __init__(self, item_type, item_value):
         self.item_type = item_type
